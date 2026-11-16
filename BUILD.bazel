@@ -1,0 +1,37 @@
+load("@rules_scala//scala:scala.bzl", "scala_library")
+load("//:gen.bzl", "generated_scala", "salt")
+
+salt(
+    name = "salt",
+    build_setting_default = "",
+)
+
+SIZES = [
+    10,
+    25,
+    50,
+    100,
+    200,
+    400,
+]
+
+[
+    generated_scala(
+        name = "gen_%d" % n,
+        count = n,
+        package = "gen%d" % n,
+    )
+    for n in SIZES
+]
+
+[
+    scala_library(
+        name = "lib_%d" % n,
+        srcs = [":gen_%d" % n],
+        deps = [
+            "//modules/api",
+            "//modules/base",
+        ],
+    )
+    for n in SIZES
+]

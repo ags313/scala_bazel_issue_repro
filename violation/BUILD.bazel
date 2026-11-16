@@ -1,0 +1,19 @@
+load("@rules_scala//scala:scala.bzl", "scala_library")
+load("//:gen.bzl", "generated_scala")
+
+generated_scala(
+    name = "gen",
+    count = 10,
+    methods = 4,
+    package = "violation",
+)
+
+# Each file uses base.Money, only //modules/api is declared (//modules/base is missing),
+# so strict deps should fail for: `bazel build //violation:lib`.
+# Stock rules_scala reports the error once per source file instead of once.
+scala_library(
+    name = "lib",
+    srcs = [":gen"],
+    tags = ["manual"],
+    deps = ["//modules/api"],
+)

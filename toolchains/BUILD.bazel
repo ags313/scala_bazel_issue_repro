@@ -1,0 +1,40 @@
+load("@rules_scala//scala:scala_toolchain.bzl", "scala_toolchain")
+
+# unused tracking, ast
+scala_toolchain(
+    name = "ast_impl",
+    dependency_mode = "transitive",
+    dependency_tracking_method = "ast",
+    strict_deps_mode = "error",
+    unused_dependency_checker_mode = "off",
+)
+
+# unused tracking, high level
+scala_toolchain(
+    name = "high_level_impl",
+    dependency_mode = "direct",
+    dependency_tracking_method = "high-level",
+    strict_deps_mode = "off",
+    unused_dependency_checker_mode = "error",
+)
+
+# no unused tracking
+scala_toolchain(
+    name = "off_impl",
+    dependency_mode = "transitive",
+    strict_deps_mode = "off",
+    unused_dependency_checker_mode = "off",
+)
+
+[
+    toolchain(
+        name = name,
+        toolchain = ":%s_impl" % name,
+        toolchain_type = "@rules_scala//scala:toolchain_type",
+    )
+    for name in [
+        "ast",
+        "high_level",
+        "off",
+    ]
+]

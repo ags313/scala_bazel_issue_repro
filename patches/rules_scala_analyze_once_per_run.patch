@@ -1,0 +1,22 @@
+--- a/third_party/dependency_analyzer/src/main/io/bazel/rulesscala/dependencyanalyzer3/DependencyAnalyzer.scala
++++ b/third_party/dependency_analyzer/src/main/io/bazel/rulesscala/dependencyanalyzer3/DependencyAnalyzer.scala
+@@ -57,7 +57,17 @@
+ 
+   override def isEnabled(using Context): Boolean = settings.dependencyTrackingMethod == handles
+ 
+-  override def run(using Context): Unit = runAnalysis()
++  // Phase.runOn calls `run` once per compilation unit, but one analysis already covers every
++  // unit of the run (AstUsedJarFinder walks ctx.run.units, and the earlier phases are done
++  // for all units by now). Analysing once per unit made the phase O(units x run size) and
++  // reported each strict-deps error once per unit.
++  private var analysedRun: AnyRef | Null = null
++
++  override def run(using Context): Unit =
++    if analysedRun ne ctx.run then {
++      analysedRun = ctx.run
++      runAnalysis()
++    }
+ 
+   private def runAnalysis()(using Context): Unit = {
+     val usedJarsToPositions = findUsedJarsAndPositions
+
